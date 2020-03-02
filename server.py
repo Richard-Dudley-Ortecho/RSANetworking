@@ -33,9 +33,11 @@ def generate_server_keys():
     size_key = 256*4
     privatekey = RSA.generate(size_key, os.urandom)
     publickey = privatekey.publickey()
-    f = open("./Server/publicKey.txt", "w+")
-    f.write(publickey.exportKey('DER').decode("utf-8"))
+    f = open('./Server/public.pem', 'wb')
+    f.write(publickey.exportKey('PEM'))
     f.close()
+    #f.write(public_plain)
+    #pub_file.close()
     return privatekey
 
 # Write a function that decrypts a message using the server's private key

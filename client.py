@@ -39,8 +39,9 @@ def generate_key():
 # key and return the value
 def encrypt_handshake(session_key, public_key):
     #might need to "plain"text the session ke
-    sesh = session_key = session_key.exportKey('DER')
-    encrypt_key = public_key.encrypt(sesh, 32)[0]
+    sesh = session_key.exportKey('DER')
+    #print(sesh)
+    encrypt_key = public_key.encrypt(sesh.encode('utf8'), 32)[0]
     encoded_encrypted_msg = base64.b64encode(encrypted_key)
     return encoded_encrypted_msg
 
@@ -83,12 +84,9 @@ def main():
     sock.connect(server_address)
     publickey = ""
     try:
-        server_public_key = open("./Server/publicKey.txt", 'r')
-        publickey = server_public_key.read()
-        publickey = RSA.importKey(publickey)
-        if(publickey == ""):
-            print("No key found!")
-        server_public_key.close()
+        f = open("./Server/public.pem", 'rb')
+        publickey = RSA.importKey(f.read())
+        f.close()
     except FileNotFoundError:
         pass
 
@@ -112,7 +110,7 @@ def main():
             exit(0)
 
         # : Encrypt message and send to server
-        uspw = encrypt_message(user + ',' + password, key):
+        uspw = encrypt_message(user + ',' + password, key)
 
 
         # : Receive and decrypt response from server

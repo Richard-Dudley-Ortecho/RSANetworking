@@ -15,8 +15,8 @@ password = input("Enter a password: ")
 # salt = ???
 # hashed_password = ???
 
-salt = bcrypt.gensalt()
-hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+salt = user + "1"
+hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt.encode('utf-8'))
 
 try:
     reading = open("passfile.txt", 'r')
