@@ -13,7 +13,7 @@
 
 
 """
-
+import Crypto
 import socket
 import os
 from Crypto.PublicKey import RSA
@@ -32,7 +32,8 @@ def pad_message(message):
 
 # Generate a cryptographically random AES key
 def generate_key():
-    return RSA.generate(2048, os.urandom)
+    key = Crypto.Random.get_random_bytes(16)
+    return key
 
 
 # Takes an AES session key and encrypts it using the appropriate
