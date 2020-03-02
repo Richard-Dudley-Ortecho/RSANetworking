@@ -1,1 +1,3 @@
 rortecho	b'$2b$12$3YyzalmosAekv2qMFLjmIe'	b'$2b$12$3YyzalmosAekv2qMFLjmIek0//jqpNF8g1vM2hGLddae6tpSdUnmm'
+dog	b'$2b$12$a6KfGRhy5GgrFci1WgIeJu'	b'$2b$12$a6KfGRhy5GgrFci1WgIeJusRq2mw7I/bvZmY8O0H0Z0ga8EJ/CCei'
+r	b'$2b$12$sxafqSM.Pgf2QCJ0SvMzau'	b'$2b$12$sxafqSM.Pgf2QCJ0SvMzausCK3m40gB9H/NbaHFyxQ24wwaRo47Tm'

@@ -1,5 +1,4 @@
 """
-    add_user.py - Stores a new username along with salt/password
 
     CSCI 3403
     Authors: Matt Niemiec and Abigail Fernandes
@@ -15,8 +14,8 @@ password = input("Enter a password: ")
 # salt = ???
 # hashed_password = ???
 
-salt = user + "1"
-hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt.encode('utf-8'))
+salt = bcrypt.gensalt()
+hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
 
 try:
     reading = open("passfile.txt", 'r')
@@ -29,5 +28,5 @@ except FileNotFoundError:
     pass
 
 with open("passfile.txt", 'a+') as writer:
-    writer.write("{0}\t{1}\t{2}\n".format(user, salt, hashed_password))
-    print("User successfully added!")
+    writer.write("{0}\t{1}\t{2}\n".format(user, salt.decode('utf-8'), hashed_password.decode('utf-8'))
+

@@ -14,10 +14,13 @@
 
 """
 import Crypto
+from Crypto.Cipher import AES
 import socket
 import os
 from Crypto.PublicKey import RSA
 import base64
+#from Crypto.Util.Padding import pad
+#from Crypto.Util.Padding import unpad
 
 
 host = "localhost"
@@ -40,25 +43,21 @@ def generate_key():
 # key and return the value
 def encrypt_handshake(session_key, public_key):
     #might need to "plain"text the session ke
-    sesh = session_key.exportKey('DER')
+    sesh = session_key
     #print(sesh)
-    encrypt_key = public_key.encrypt(sesh.encode('utf8'), 32)[0]
-    encoded_encrypted_msg = base64.b64encode(encrypted_key)
+    encrypt_key = public_key.encrypt(sesh, 32)[0]
+    encoded_encrypted_msg = base64.b64encode(encrypt_key)
     return encoded_encrypted_msg
 
 
-# Encrypts the message using AES. Same as server function
 def encrypt_message(message, session_key):
-    encr_msg = session_key.encrypt(message, 32)[0]
-    encoded_encr_msg = base64.b64encode(encr_msg)
-    return encoded_encr_msg
+    ciphertext = session_key.encrypt(pad_message(message))
+    return ciphertext
 
 
 # Decrypts the message using AES. Same as server function
 def decrypt_message(message, session_key):
-    decoded_encrypted_msg = base64.b64decode(message)
-    decoded_encrypted_msg = session_key.decrypt(decoded_encrypted_msg)
-    return decoded_encrypted_msg
+    return session_key.decrypt(message)
 
 
 # Sends a message over TCP
@@ -98,25 +97,42 @@ def main():
 
         # Generate random AES key
         key = generate_key()
+        rand_iv = generate_key()
+        AES_key = AES.new(key, AES.MODE_CBC, rand_iv)
+        
 
-        # Encrypt the session key using server's public key
+        iv = base64.b64encode(rand_iv).decode('utf-8')
+#        print(type(iv))
+
+        f = open('./Client/iv.txt', 'w')
+        f.write(iv)
+        f.close()
+        print("wrote to iv.txt")
+
+        # Encrypt the session key using server's public keyi
+        print("Making handshake")
         encrypted_key = encrypt_handshake(key, publickey)
 
         # Initiate handshake
+        print("Sending handshake")
         send_message(sock, encrypted_key)
+        print("Initaited handshake")
 
         # Listen for okay from server (why is this necessary?)
         if receive_message(sock).decode() != "okay":
             print("Couldn't connect to server")
             exit(0)
-
+        print("Got the OKAY")
         # : Encrypt message and send to server
-        uspw = encrypt_message(user + ',' + password, key)
-
+        uspw = encrypt_message(user + ',' + password, AES_key)
+        send_message(sock, uspw)
+        print("Sent uspw")
 
         # : Receive and decrypt response from server
-        
-        if receive_message(sock).decode() != "All good":
+        success_flag = decrypt_message(receive_message(sock), AES_key)
+        print(success_flag)
+        success_flag = success_flag.decode("utf-8")
+        if success_flag != "All good":
             print("Could not parse All good")
             
     finally:

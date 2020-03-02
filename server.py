@@ -10,14 +10,20 @@
     Put your team members' names:
 
     Richard Dudley Ortecho
+    Greg Lenard
 
 """
 
 import socket
+from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 import os
 import base64
 import bcrypt
+import Crypto
+#from Crypto.Util.Padding import pad
+#from Crypto.Util.Padding import unpad
+
 
 host = "localhost"
 port = 10001
@@ -47,16 +53,12 @@ def decrypt_key(message, private_key):
     return d_e_msg
 
 def encrypt_message(message, session_key):
-    encr_msg = session_key.encrypt(message, 32)[0]
-    encoded_encr_msg = base64.b64encode(encr_msg)
-    return encoded_encr_msg
-
+    ciphertext = session_key.encrypt(pad_message(message))
+    return ciphertext
 
 # Decrypts the message using AES. Same as server function
 def decrypt_message(message, session_key):
-    decoded_encrypted_msg = base64.b64decode(message)
-    decoded_encrypted_msg = session_key.decrypt(decoded_encrypted_msg)
-    return decoded_encrypted_msg
+    return session_key.decrypt(message)
 
 
 # Receive 1024 bytes from the client
@@ -83,8 +85,8 @@ def verify_hash(user, password):
         for line in reader.read().split('\n'):
             line = line.split("\t")
             if line[0] == user:
-                salt = user + "1"
-                hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt.encode('utf-8'))   
+                salt = line[1]
+                hashed_password = bcrypt.hashpw(password, salt)   
                 return hashed_password == line[2]
         reader.close()
     except FileNotFoundError:
@@ -113,20 +115,47 @@ def main():
                 
                 # Receive encrypted key from client
                 encrypted_key = receive_message(connection)
+                print("got encryption key")
 
                 # Send okay back to client
                 send_message(connection, "okay")
+                print("Sent: OKAY")
 
                 # Decrypt key from client
                 plaintext_key = decrypt_key(encrypted_key, privatekey)
+                
+                print("Unecrypting key")
 
                 # Receive encrypted message from client
                 ciphertext_message = receive_message(connection)
+                print("Got the uspw")
 
                 #: Decrypt message from client
-                text_key = RSA.importKey(plaintext_key)
+                f = open("./Client/iv.txt", 'r')
+                plain_iv = f.read()
+                f.close()
+
+                iv = base64.b64decode(plain_iv)
+
+                #print(iv)
+                #print(plain_iv)
+
+                text_key = AES.new(plaintext_key, AES.MODE_CBC, iv)
                 response =  decrypt_message(ciphertext_message, text_key)
-    
+                
+                #print(response)
+
+                print("The ciphertext message was: ")
+                print(ciphertext_message)
+
+                #response = base64.b64decode(response)   
+                print("The Response is: ")
+                print( response)
+                print('The type of response is: ')
+                print(type(response))
+                response = response.decode("utf-8")
+                response.replace(" ", "")
+                print(response)
                 # : Split response from user into the username and password
                 re = response.split(",")
                 username = re[0]
@@ -139,11 +168,13 @@ def main():
                 if(check != False):
                     ciphertext_response = "All good"
                     ciphertext_response = encrypt_message(ciphertext_response, text_key)
+                    print("SENT ALL GOOD")
                 else:
                     ciphertext_response = "Something went bad"
                     ciphertext_response = encrypt_message(ciphertext_response, text_key)
 
                 # Send encrypted response
+                
                 send_message(connection, ciphertext_response)
             finally:
                 # Clean up the connection
