@@ -33,7 +33,7 @@ def generate_server_keys():
     size_key = 256*4
     privatekey = RSA.generate(size_key, os.urandom)
     publickey = privatekey.publickey()
-    f = open("./Server/publicKey.txt", "w+")
+    f = open("./Server/publicKey.pem", "w+")
     f.write(publickey.exportKey('DER').decode("utf-8"))
     f.close()
     return privatekey
