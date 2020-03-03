@@ -126,15 +126,18 @@ def main():
         # : Encrypt message and send to server
         uspw = encrypt_message(user + ',' + password, AES_key)
         send_message(sock, uspw)
-        print("Sent uspw")
+        print("Sent encrypted username and password")
 
         # : Receive and decrypt response from server
         success_flag = decrypt_message(receive_message(sock), AES_key)
-        print(success_flag)
+        #print(success_flag)
         success_flag = success_flag.decode("utf-8")
+        success_flag = success_flag.strip()
         if success_flag != "All good":
-            print("Could not parse All good")
-            
+            print("Wrong username or password")
+        else:
+            print("Sucess, that is a correct username and password pair")
+
     finally:
         print('closing socket')
         sock.close()

@@ -86,8 +86,8 @@ def verify_hash(user, password):
             line = line.split("\t")
             if line[0] == user:
                 salt = line[1]
-                hashed_password = bcrypt.hashpw(password, salt)   
-                return hashed_password == line[2]
+                hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt.encode('utf-8'))   
+                return hashed_password == line[2].encode('utf-8')
         reader.close()
     except FileNotFoundError:
         return False
@@ -128,7 +128,7 @@ def main():
 
                 # Receive encrypted message from client
                 ciphertext_message = receive_message(connection)
-                print("Got the uspw")
+                print("Got the username and encrypted password")
 
                 #: Decrypt message from client
                 f = open("./Client/iv.txt", 'r')
@@ -142,25 +142,27 @@ def main():
 
                 text_key = AES.new(plaintext_key, AES.MODE_CBC, iv)
                 response =  decrypt_message(ciphertext_message, text_key)
-                
+                print("Decifiered the Key")
                 #print(response)
 
-                print("The ciphertext message was: ")
-                print(ciphertext_message)
+                #print("The ciphertext message was: ")
+                #print(ciphertext_message)
 
                 #response = base64.b64decode(response)   
-                print("The Response is: ")
-                print( response)
-                print('The type of response is: ')
-                print(type(response))
+                #print("The Response is: ")
+                #print( response)
+                #print('The type of response is: ')
+                #print(type(response))
                 response = response.decode("utf-8")
                 response.replace(" ", "")
-                print(response)
+                #print(response)
                 # : Split response from user into the username and password
                 re = response.split(",")
                 username = re[0]
                 password = re[1]
-                
+                password = password.strip()
+                #print(len(username))
+                #print(len(password))
                 #: Encrypt response to client
                 
                 check = verify_hash(username, password)
@@ -172,7 +174,7 @@ def main():
                 else:
                     ciphertext_response = "Something went bad"
                     ciphertext_response = encrypt_message(ciphertext_response, text_key)
-
+                    print("Something went wrong")
                 # Send encrypted response
                 
                 send_message(connection, ciphertext_response)
